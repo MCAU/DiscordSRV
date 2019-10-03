@@ -41,6 +41,7 @@ public class CommandManager {
     public CommandManager() {
         List<Class<?>> commandClasses = Arrays.asList(
                 CommandBroadcast.class,
+                CommandSend.class,
                 CommandDebug.class,
                 CommandHelp.class,
                 CommandLink.class,
