@@ -19,27 +19,37 @@ DiscordConsoleChannelId: "000000000000000000"
 #
 DebugLevel: 0
 DebugJDA: false
+DebugJDARestActionStacks: false
 CancelConsoleCommandIfLoggingFailed: true
 RespectChatPlugins: true
 ForcedLanguage: none
-Experiment_JdbcAccountLinkBackend: "jdbc:mysql://HOST:PORT/DATABASE?useSSL=false"
+Experiment_JdbcAccountLinkBackend: "jdbc:mysql://HOST:PORT/DATABASE?autoReconnect=true&useSSL=false"
 Experiment_JdbcTablePrefix: "discordsrv"
 Experiment_JdbcUsername: "username"
 Experiment_JdbcPassword: "password"
 Experiment_WebhookChatMessageDelivery: false
+Experiment_WebhookChatMessageAvatarUrl: https://crafatar.com/avatars/{uuid}?overlay
+#Experiment_WebhookChatMessageAvatarUrl: https://minotar.net/helm/{username}
 Experiment_MCDiscordReserializer: false
-WebhookAvatarsAre3d: false
 PrintGuildsAndChannels: true
 ForceTLSv12: true
-SponsorPebbleHost: true
+PartnerPebbleHost: true
 
 # Désactiver l'accrochage de plugin
 # Si vous n'avez pas de raison de toucher à cela ne changez rien
 #
 DisabledPluginHooks: []
 
-# Information de jeu. Cela change l'indicateur "Joue à ______" laissez vide si vous souhaitez le désactiver
+# Game Information
+# Sets the "Playing: ______" indicator for the bot.
+# Can be a single, static value, or cycle through multiple different options
+# You can preface the status with "playing", "watching", or "listening to" to set the activity type
+# PlaceholderAPI placeholders are supported
+#
+# DiscordGameStatus: Text to display. Can be a single value e.g. "Minecraft", or multiple values e.g. ["Minecraft", "yourip.changeme.com"]
+# StatusUpdaterRateInMinutes: How frequently to cycle the status
 DiscordGameStatus: "Minecraft"
+StatusUpdateRateInMinutes: 2
 
 # Channel de tchat
 # Le channel de tchat est le salon ou tous les messages en jeu seront envoyés au Discord et tous les messages Discord envoyés au jeu
@@ -52,6 +62,7 @@ DiscordGameStatus: "Minecraft"
 # DiscordChatChannelRolesAllowedToUseColorCodesInChat: liste des rôles autorisés à envoyer des messages de couleur depuis Discord sur Minecraft
 # DiscordChatChannelBroadcastDiscordMessagesToConsole: envoie des messages Discord sur la console ou non
 # DiscordChatChannelRequireLinkedAccount: les joueurs doivent-ils avoir un compte lié avant d'envoyer des messages depuis Discord sur Minecraft
+# DiscordChatChannelBlockBots: si les bots doivent ou non être bloqués de Discord -> MC chat
 # DiscordChatChannelBlockedIds: ID des utilisateurs Discord dont les messages ne seront pas envoyés
 # DiscordChatChannelColorTranslations: couleurs hexadécimales répresentant les couleurs Minecraft
 # DiscordChatChannelRolesSelectionAsWhitelist: si la liste suivante doit être traitée comme une liste blanche (true) ou une liste noire (false)
@@ -65,6 +76,7 @@ DiscordChatChannelPrefix: ""
 DiscordChatChannelRolesAllowedToUseColorCodesInChat: ["Developer", "Owner", "Admin", "Moderator"]
 DiscordChatChannelBroadcastDiscordMessagesToConsole: true
 DiscordChatChannelRequireLinkedAccount: false
+DiscordChatChannelBlockBots: false
 DiscordChatChannelBlockedIds: ["000000000000000000", "000000000000000000", "000000000000000000"]
 DiscordChatChannelColorTranslations: {
   "99AAB5": "&f",
@@ -109,7 +121,7 @@ DiscordChatChannelRolesSelection: ["Don't show me!", "Misc role"]
 DiscordConsoleChannelLogRefreshRateInSeconds: 5
 DiscordConsoleChannelUsageLog: "DiscordConsole.log"
 DiscordConsoleChannelBlacklistActsAsWhitelist: false
-DiscordConsoleChannelBlacklistedCommands: ["?", "op", "deop"]
+DiscordConsoleChannelBlacklistedCommands: ["?", "op", "deop", "execute"]
 DiscordConsoleChannelDoNotSendPhrasesActsAsWhitelist: false
 DiscordConsoleChannelDoNotSendPhrases: ["async chat thread"]
 DiscordConsoleChannelRegexFilter: ""
@@ -161,7 +173,7 @@ DiscordChatChannelListCommandExpirationDeleteRequest: true
 # DiscordChatChannelRegexReplacement: deviennent les messages saisit ici
 #
 DiscordChatChannelBlockedPhrases: ["Joueurs en ligne (", "**Aucun joueur en ligne**"]
-DiscordChatChannelCutPhrases: ["@everyone"]
+DiscordChatChannelCutPhrases: ["@everyone", "@here"]
 DiscordChatChannelRegex: ""
 DiscordChatChannelRegexReplacement: ""
 
@@ -201,7 +213,8 @@ DiscordCannedResponses: {"!ip": "yourserveripchange.me", "!site": "http://yoursi
 # MinecraftDiscordAccountLinkedAllowRelinkBySendingANewCode: permet d'envoyer un nouveau code au bot pour dissocier et relier le nouveau code
 #
 MinecraftDiscordAccountLinkedConsoleCommands: ["", "", ""]
-MinecraftDiscordAccountLinkedRoleNameToAddUserTo: "Lié"
+MinecraftDiscordAccountUnlinkedConsoleCommands: ["", "", ""]
+MinecraftDiscordAccountLinkedRoleNameToAddUserTo: "Linked"
 MinecraftDiscordAccountLinkedSetDiscordNicknameAsInGameName: false
 MinecraftDiscordAccountLinkedAllowRelinkBySendingANewCode: false
 

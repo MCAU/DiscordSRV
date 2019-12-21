@@ -21,11 +21,9 @@ package github.scarsz.discordsrv.objects.threads;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.objects.Lag;
 import github.scarsz.discordsrv.util.*;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 
-import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -37,66 +35,64 @@ public class ChannelTopicUpdater extends Thread {
 
     @Override
     public void run() {
-        int rate = DiscordSRV.config().getInt("ChannelTopicUpdaterRateInMinutes");
-        if (rate < 5) rate = 5;
-
         while (true) {
-            try {
+            int rate = DiscordSRV.config().getInt("ChannelTopicUpdaterRateInMinutes");
+            if (rate < 5) rate = 5;
+
+            if (DiscordUtil.getJda() != null) {
                 String chatTopic = applyPlaceholders(LangUtil.Message.CHAT_CHANNEL_TOPIC.toString());
+                if (StringUtils.isNotBlank(chatTopic))
+                    DiscordUtil.setTextChannelTopic(DiscordSRV.getPlugin().getMainTextChannel(), chatTopic);
+
                 String consoleTopic = applyPlaceholders(LangUtil.Message.CONSOLE_CHANNEL_TOPIC.toString());
-
-                // interrupt if both text channels are unavailable
-                if (DiscordSRV.getPlugin().getMainTextChannel() == null && DiscordSRV.getPlugin().getConsoleChannel() == null) {
-                    DiscordSRV.debug("Broke from Channel Topic Updater thread: chat channel and console channel were both null");
-                    return;
-                }
-                // interrupt if both text channel's desired topics are empty
-                if (chatTopic.isEmpty() && consoleTopic.isEmpty()) {
-                    DiscordSRV.debug("Broke from Channel Topic Updater thread: chat channel topic and console channel topic messages were both empty");
-                    return;
-                }
-
-                if (DiscordUtil.getJda() != null && DiscordUtil.getJda().getSelfUser() != null) {
-                    if (!chatTopic.isEmpty()) DiscordUtil.setTextChannelTopic(DiscordSRV.getPlugin().getMainTextChannel(), chatTopic);
-                    if (!consoleTopic.isEmpty()) DiscordUtil.setTextChannelTopic(DiscordSRV.getPlugin().getConsoleChannel(), consoleTopic);
-                }
-            } catch (NullPointerException ignored) {}
+                if (StringUtils.isNotBlank(consoleTopic))
+                    DiscordUtil.setTextChannelTopic(DiscordSRV.getPlugin().getConsoleChannel(), consoleTopic);
+            } else {
+                DiscordSRV.debug("Skipping channel topic update cycle, JDA was null");
+            }
 
             try {
-                Thread.sleep(rate * 60 * 1000);
+                Thread.sleep(TimeUnit.MINUTES.toMillis(rate));
             } catch (InterruptedException e) {
-                DiscordSRV.debug("Broke from Channel Topic Updater thread: sleep interrupted");
+                DiscordSRV.warning("Broke from Channel Topic Updater thread: sleep interrupted");
                 return;
             }
         }
     }
 
-    @Getter private static File playerDataFolder = new File(Bukkit.getWorlds().get(0).getWorldFolder().getAbsolutePath(), "/playerdata");
-    @SuppressWarnings({"SpellCheckingInspection", "ConstantConditions"})
-    public static String applyPlaceholders(String input) {
+    @SuppressWarnings({"SpellCheckingInspection"})
+    private static String applyPlaceholders(String input) {
+        if (StringUtils.isBlank(input)) return "";
+
+        // set PAPI placeholders
+        if (PluginUtil.pluginHookIsEnabled("placeholderapi")) input = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(null, input);
+
         final Map<String, String> mem = MemUtil.get();
 
-        input = input
-                .replaceAll("%time%|%date%", TimeUtil.timeStamp())
-                .replace("%playercount%", Integer.toString(PlayerUtil.getOnlinePlayers(true).size()))
-                .replace("%playermax%", Integer.toString(Bukkit.getMaxPlayers()))
-                .replace("%totalplayers%", Integer.toString(playerDataFolder.listFiles(f -> f.getName().endsWith(".dat")).length))
-                .replace("%uptimemins%", Long.toString(TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - DiscordSRV.getPlugin().getStartTime())))
-                .replace("%uptimehours%", Long.toString(TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis() - DiscordSRV.getPlugin().getStartTime())))
-                .replace("%motd%", StringUtils.isNotBlank(Bukkit.getMotd()) ? DiscordUtil.strip(Bukkit.getMotd()) : "")
-                .replace("%serverversion%", Bukkit.getBukkitVersion())
-                .replace("%freememory%", mem.get("freeMB"))
-                .replace("%usedmemory%", mem.get("usedMB"))
-                .replace("%totalmemory%", mem.get("totalMB"))
-                .replace("%maxmemory%", mem.get("maxMB"))
-                .replace("%freememorygb%", mem.get("freeGB"))
-                .replace("%usedmemorygb%", mem.get("usedGB"))
-                .replace("%totalmemorygb%", mem.get("totalGB"))
-                .replace("%maxmemorygb%", mem.get("maxGB"))
-                .replace("%tps%", Lag.getTPSString())
-        ;
+        input = input.replaceAll("%time%|%date%", notNull(TimeUtil.timeStamp()))
+                     .replace("%playercount%", notNull(Integer.toString(PlayerUtil.getOnlinePlayers(true).size())))
+                     .replace("%playermax%", notNull(Integer.toString(Bukkit.getMaxPlayers())))
+                     .replace("%totalplayers%", notNull(Integer.toString(DiscordSRV.getTotalPlayerCount())))
+                     .replace("%uptimemins%", notNull(Long.toString(TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - DiscordSRV.getPlugin().getStartTime()))))
+                     .replace("%uptimehours%", notNull(Long.toString(TimeUnit.MILLISECONDS.toHours(System.currentTimeMillis() - DiscordSRV.getPlugin().getStartTime()))))
+                     .replace("%uptimedays%", notNull(Long.toString(TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - DiscordSRV.getPlugin().getStartTime()))))
+                     .replace("%motd%", notNull(StringUtils.isNotBlank(Bukkit.getMotd()) ? DiscordUtil.strip(Bukkit.getMotd()) : ""))
+                     .replace("%serverversion%", notNull(Bukkit.getBukkitVersion()))
+                     .replace("%freememory%", notNull(mem.get("freeMB")))
+                     .replace("%usedmemory%", notNull(mem.get("usedMB")))
+                     .replace("%totalmemory%", notNull(mem.get("totalMB")))
+                     .replace("%maxmemory%", notNull(mem.get("maxMB")))
+                     .replace("%freememorygb%", notNull(mem.get("freeGB")))
+                     .replace("%usedmemorygb%", notNull(mem.get("usedGB")))
+                     .replace("%totalmemorygb%", notNull(mem.get("totalGB")))
+                     .replace("%maxmemorygb%", notNull(mem.get("maxGB")))
+                     .replace("%tps%", notNull(Lag.getTPSString()));
 
         return input;
+    }
+
+    private static String notNull(Object object) {
+        return object != null ? object.toString() : "";
     }
 
 }
