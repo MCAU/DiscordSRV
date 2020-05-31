@@ -66,7 +66,8 @@ public class DiscordChatListener extends ListenerAdapter {
         DiscordSRV.api.callEvent(new DiscordGuildMessageReceivedEvent(event));
 
         // if message from text channel other than a linked one return
-        if (DiscordSRV.getPlugin().getDestinationGameChannelNameForTextChannel(event.getChannel()) == null) return;
+        String gameChannel = DiscordSRV.getPlugin().getDestinationGameChannelNameForTextChannel(event.getChannel());
+        if (gameChannel == null) return;
 
         // sanity & intention checks
         String message = DiscordSRV.config().getBoolean("Experiment_MCDiscordReserializer_ToMinecraft") ? event.getMessage().getContentRaw() : event.getMessage().getContentStripped();
@@ -145,9 +146,9 @@ public class DiscordChatListener extends ListenerAdapter {
                     DiscordSRV.debug("DiscordGuildMessagePostProcessEvent was cancelled, attachment send aborted");
                     return;
                 }
-                DiscordSRV.getPlugin().broadcastMessageToMinecraftServer(DiscordSRV.getPlugin().getDestinationGameChannelNameForTextChannel(event.getChannel()), placedMessage, event.getAuthor());
+                DiscordSRV.getPlugin().broadcastMessageToMinecraftServer(gameChannel, placedMessage, event.getAuthor());
                 if (DiscordSRV.config().getBoolean("DiscordChatChannelBroadcastDiscordMessagesToConsole"))
-                    DiscordSRV.info(LangUtil.InternalMessage.CHAT + ": " + DiscordUtil.strip(placedMessage.replace("»", ">")));
+                    DiscordSRV.info(gameChannel + " " + LangUtil.InternalMessage.CHAT + ": " + DiscordUtil.strip(placedMessage.replace("»", ">")));
             }
 
             if (StringUtils.isBlank(event.getMessage().getContentRaw())) return;
@@ -235,10 +236,10 @@ public class DiscordChatListener extends ListenerAdapter {
                     dynmapHook.broadcastMessageToDynmap(nameFormat, chatFormat);
         });
 
-        DiscordSRV.getPlugin().broadcastMessageToMinecraftServer(DiscordSRV.getPlugin().getDestinationGameChannelNameForTextChannel(event.getChannel()), postEvent.getProcessedMessage(), event.getAuthor());
+        DiscordSRV.getPlugin().broadcastMessageToMinecraftServer(gameChannel, postEvent.getProcessedMessage(), event.getAuthor());
 
         if (DiscordSRV.config().getBoolean("DiscordChatChannelBroadcastDiscordMessagesToConsole")) {
-            DiscordSRV.info(LangUtil.InternalMessage.CHAT + ": " + DiscordUtil.strip(postEvent.getProcessedMessage().replace("»", ">")));
+            DiscordSRV.info(gameChannel + " " + LangUtil.InternalMessage.CHAT + ": " + DiscordUtil.strip(postEvent.getProcessedMessage().replace("»", ">")));
         }
     }
 
